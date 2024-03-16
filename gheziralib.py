@@ -90,7 +90,7 @@ def load_var(
 
     # future
     ds_raw = xr.open_zarr(mapper, consolidated = True)
-    var_raw = ds_raw[f'{var}'].sel(lat = slice(*lat_bnds), lon = slice(*lon_bnds)) - 273.15 
+    var_raw = ds_raw[f'{var}'].sel(lat = slice(*lat_bnds), lon = slice(*lon_bnds))
 
     # select time periods
     # var_hist_raw = var_hist_raw.sel(time = var_hist_raw.time.dt.year.isin(years_hist))
