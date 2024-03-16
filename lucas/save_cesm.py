@@ -11,6 +11,8 @@ sys.path.insert(1, 'C:/Users/prate/Desktop/Climate Impacts Hackathon/ghezira-irr
 from gheziralib import *
 
 path='C:/Users/prate/Desktop/Climate Impacts Hackathon/data/cesm/'
+experiment='ssp585' #ssp585 or historical
 start, end = 1980, 2011
-arr=load_var('pr',experiment_id='historical',years=np.arange(start,end))
-arr.to_netcdf(path+f'precip.cesm.daily.{start}-{end-1}.nc','w')
+arr=load_var('hur',experiment_id=experiment,years=np.arange(start,end)).sel(plev=1000,method='nearest')
+arr.to_netcdf(path+f'RH.cesm.daily.{experiment}.{start}-{end-1}.nc','w')
+arr.close()
