@@ -7,13 +7,12 @@ import rioxarray as rxr
 import cartopy.crs as ccrs
 import cartopy.feature as cfeature
 
-path_to_era5 = 'era5_Geriza'
-path_to_terraclim = './data/era5_Geriza_Highres'
-shapefile_name = "./data/Gezira_shapefile/Gezira.shp"
+#### PATHS ###
+path_to_data = 'C:/Users/prate/Desktop/Climate Impacts Hackathon/data/era5_Geriza_Highres/'
+shapefile_name = "C:/Users/prate/Desktop/Climate Impacts Hackathon/data/Gezira_shapefile/Gezira.shp"
 df_shapefile = gpd.read_file(shapefile_name, crs="epsg:4326")
-# df_shapefile.plot()
-# plt.show()
 
+#### FUNCTIONS ####
 def mask_region(arr,ds='era5'):
     if ds=='era5':
         arr = arr.rio.set_spatial_dims(x_dim="longitude", y_dim="latitude")
@@ -22,42 +21,14 @@ def mask_region(arr,ds='era5'):
     arr = arr.rio.write_crs("epsg:4326")
     return arr.rio.clip(df_shapefile.geometry.values, df_shapefile.crs, drop = False, invert = False)
 
-# initialize variables for era5 data
-start, end = 1980, 2011
-yrs = end - start
-days = 365
-tp_era5=np.empty((yrs, days))
-rh_era5=np.empty((yrs, days))
-t2m_era5=np.empty((yrs, days))
 
-tp_era5[:]=np.nan
-rh_era5[:]=np.nan
-t2m_era5[:]=np.nan
-
-# open ERA5 data
-print('load ERA5...')
-for year in range(start,end):
-    f_tp = xr.open_dataset(f"./data/era5_Geriza/precip/e5.precip.daily.{year}.nc")
-    f_rh = xr.open_dataset(f"./data/era5_Geriza/RH/e5.RH.1000hPa.daily.{year}.nc")
-    f_t2m = xr.open_dataset(f"./data/era5_Geriza/t2m/e5.t2m.daily.{year}.nc")
-    j = year - start
-    tp=f_tp.tp * 1000 # do unit conversion
-    tp.attrs['units'] = 'mm/day' # update the unit attributes
-    tp = mask_region(tp)
-    rh=mask_region(f_rh.r)
-    t2m=mask_region(f_t2m.t2m)
-    for i in range(days):  # how to deal with leap years??
-        tp_era5[j,i] = np.nanmean(tp[i,:,:])
-        rh_era5[j,i] = np.nanmean(rh[i,:,:])
-        t2m_era5[j,i] = np.nanmean(t2m[i,:,:])
-
-def plot(era5, title, unit):
+def plot(era5, title, unit, label):
     plt.figure(figsize=(10,5))
     clim = np.nanmean(era5,axis=0)
     max=np.nanmax(era5,axis=0)
     min=np.nanmin(era5,axis=0)
     time=np.arange(days)
-    plt.plot(time,clim,label='ERA5')
+    plt.plot(time,clim,label=label)
     plt.fill_between(time,min,max,alpha=0.5)
 
     plt.grid()
@@ -66,7 +37,48 @@ def plot(era5, title, unit):
     plt.xlabel('Days since January 1st')
     plt.title(f'Mean Regional {title} Climatology {start}-{end-1} ({unit})')
 
-plot(tp_era5, 'Daily Precipitation', 'mm/day')
-plot(rh_era5, 'Relative Humidity', '%')
-plot(t2m_era5, '2m Temperature', 'K')
+
+# initialize arrays for terraclim data
+start, end = 1980, 2011
+yrs = end - start
+days = 365
+
+tp_tc=np.empty((yrs, days))
+rh_tc=np.empty((yrs, days))
+t2m_tc=np.empty((yrs, days))
+
+tp_tc[:]=np.nan
+rh_tc[:]=np.nan
+t2m_tc[:]=np.nan
+
+print('loading terraclim...')
+f_tp = xr.open_dataset(path_to_data+f"precip.e5.daily.highres.{start}-{end-1}.nc")
+f_rh = xr.open_dataset(path_to_data+f"RH.e5.daily.highres.{start}-{end-1}.nc")
+f_tmax = xr.open_dataset(path_to_data+f"tmax.e5.daily.highres.{start}-{end-1}.nc")
+f_tmin = xr.open_dataset(path_to_data+f"tmin.e5.daily.highres.{start}-{end-1}.nc")
+
+tp=f_tp.tp * 1000 # do unit conversion
+tp.attrs['units'] = 'mm/day' # update the unit attributes
+tp = mask_region(tp,ds='tc')
+rh= mask_region(f_rh.relative_humidity,ds='tc')
+tmax= mask_region(f_tmax.t2m,ds='tc')
+tmin= mask_region(f_tmin.t2m,ds='tc')
+t2m = (tmax + tmin) / 2
+
+
+# Check that shapefile is working 
+rh[0].plot()
+plt.show()
+
+for year in range(start, end):
+    j = year - start 
+    for i in range(days):
+        k = i + j * 365
+        tp_tc[j,i] = np.nanmean(tp[k,:,:])
+        rh_tc[j,i] = np.nanmean(rh[k,:,:])
+        t2m_tc[j,i] = np.nanmean(t2m[k,:,:])
+
+plot(tp_tc, 'Daily Precipitation', 'mm/day', 'TerraClim')
+plot(rh_tc, 'Relative Humidity', '%', 'TerraClim')
+plot(t2m_tc, '2m Temperature', 'K', 'TerraClim')
 plt.show()
