@@ -24,10 +24,10 @@ years_hist = np.arange(1980,2010, 1)
 years_585 = np.arange(2070, 2100, 1)
 tas = gl.load_var(
     var='tas',experiment_id='historical', years=years_hist)
-# pr = gl.load_var(
-#     var='pr',experiment_id='historical', years=years_hist)
-# hur = gl.load_var(
-#     var='hur',experiment_id='historical', years=years_hist)
+pr = gl.load_var(
+    var='pr',experiment_id='historical', years=years_hist)
+hur = gl.load_var(
+    var='hur',experiment_id='historical', years=years_hist)
 #%%
 # def plot(dat, title, unit, label):
 #     plt.figure(figsize=(10,5))

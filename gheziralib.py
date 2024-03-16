@@ -96,12 +96,3 @@ def load_var(
     # var_hist_raw = var_hist_raw.sel(time = var_hist_raw.time.dt.year.isin(years_hist))
     var_raw = var_raw.sel(time = var_raw.time.dt.year.isin(years))
     return var_raw
-
-
-#%%
-if __name__ == '__main__':
-    # test function
-    # tas_hist_raw, tas_ssp3_raw = load_var('tas')
-    tas_ssp3_raw = load_var('tas')
-    tas_ssp3_raw = load_var('pr')
-    tas_ssp3_raw = load_var('hur')
