@@ -6,23 +6,14 @@ import xarray as xr
 import rioxarray as rxr
 import cartopy.crs as ccrs
 import cartopy.feature as cfeature
-from irrigation_water_demand import *
+import sys
+sys.path.insert(1, 'C:/Users/prate/Desktop/Climate Impacts Hackathon/ghezira-irrigation/')
+from gheziralib import *
 
 #### PATHS ###
 path_to_data = 'C:/Users/prate/Desktop/Climate Impacts Hackathon/data/era5_Geriza_Highres/'
-shapefile_name = "C:/Users/prate/Desktop/Climate Impacts Hackathon/data/Gezira_shapefile/Gezira.shp"
-df_shapefile = gpd.read_file(shapefile_name, crs="epsg:4326")
 
 #### FUNCTIONS ####
-def mask_region(arr,ds='era5'):
-    if ds=='era5':
-        arr = arr.rio.set_spatial_dims(x_dim="longitude", y_dim="latitude")
-    elif ds=='tc':
-        arr = arr.rio.set_spatial_dims(x_dim="lon", y_dim="lat")
-    arr = arr.rio.write_crs("epsg:4326")
-    return arr.rio.clip(df_shapefile.geometry.values, df_shapefile.crs, drop = False, invert = False)
-
-
 def plot(dat, title, unit, label):
     plt.figure(figsize=(10,5))
     clim = np.nanmean(dat,axis=0)
@@ -62,17 +53,19 @@ f_tmin = xr.open_dataset(path_to_data+f"tmin.e5.daily.highres.{start}-{end-1}.nc
 
 tp=f_tp.tp * 1000 # do unit conversion
 tp.attrs['units'] = 'mm/day' # update the unit attributes
-tp = mask_region(tp,ds='tc')
-rh= mask_region(f_rh.relative_humidity,ds='tc')
-tmax= mask_region(f_tmax.t2m,ds='tc')
-tmin= mask_region(f_tmin.t2m,ds='tc')
+tp = mask_region(tp)
+rh= mask_region(f_rh.relative_humidity)
+tmax= mask_region(f_tmax.t2m)
+tmin= mask_region(f_tmin.t2m)
 t2m = (tmax + tmin) / 2
 
 
 # Check that shapefile is working 
 #rh[0].plot()
 #plt.show()
-
+# t2p_cesm = load_var('tas')
+# tas_ssp3_raw = load_var('pr')
+# tas_ssp3_raw = load_var('hur')
 for year in range(start, end):
     j = year - start 
     for i in range(days):
