@@ -57,7 +57,7 @@ def mask_region(arr,x_dim='lon',y_dim='lat',shapefile_name="C:/Users/prate/Deskt
     return arr.rio.clip(df_shapefile.geometry.values, df_shapefile.crs, drop = False, invert = False)
 
 def load_var(
-    var,member_id='r10i1p1f1',experiment_id='ssp370',lon_bnds=[30,40],
+    var,member_id='r1i1p1f1',experiment_id='ssp370',lon_bnds=[30,40],
     lat_bnds=[10,20],years=np.arange(2070, 2100, 1),
     source_id='CESM2',table_id='day'
     ):

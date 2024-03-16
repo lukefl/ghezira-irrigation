@@ -1,36 +1,31 @@
 #%%
+import os
+os.chdir('/Users/lfl/google_drive/phd/utcdw_hackathon/ghezira-irrigation')
 import numpy as np
-import pandas as pd
-import geopandas as gpd
+# import pandas as pd
+# import geopandas as gpd
 import matplotlib.pyplot as plt
 import xarray as xr
-import rioxarray as rxr
-import cartopy.crs as ccrs
-import cartopy.feature as cfeature
-import sys
-os.chdir('/Users/lfl/google_drive/phd/utcdw_hackathon/ghezira-irrigation')
-# caution: path[0] is reserved for script path (or '' in REPL)
-# ghezira_path = ('/Users/lfl/google_drive/phd/utcdw_hackathon/'
-#     + 'ghezira-irrigation')
-# sys.path.append(f'{ghezira_path}')
-#%%
+# import rioxarray as rxr
+# import cartopy.crs as ccrs
+# import cartopy.feature as cfeature
 import gheziralib as gl
 #%%
-#### PATHS ###
-path_to_data = '/Users/lfl/utcdw_data'
-shapefile_name = f"{path_to_data}/Gezira.shp"
-df_shapefile = gpd.read_file(shapefile_name, crs="epsg:4326")
 
-#### FUNCTIONS ####
-def mask_region(arr,ds='era5'):
-    if ds=='era5':
-        arr = arr.rio.set_spatial_dims(x_dim="longitude", y_dim="latitude")
-    elif ds=='tc':
-        arr = arr.rio.set_spatial_dims(x_dim="lon", y_dim="lat")
-    arr = arr.rio.write_crs("epsg:4326")
-    return arr.rio.clip(df_shapefile.geometry.values, df_shapefile.crs, drop = False, invert = False)
+# #### PATHS ###
+# path_to_data = '/Users/lfl/utcdw_data'
+# shapefile_name = f"{path_to_data}/Gezira.shp"
+# df_shapefile = gpd.read_file(shapefile_name, crs="epsg:4326")
 
+tas = gl.load_var(
+    var='tas',experiment_id='ssp585', years=np.arange(2070, 2100, 1))
+pr = gl.load_var(
+    var='pr',experiment_id='ssp585', years=np.arange(2070, 2100, 1))
+#%%
+pr = gl.load_var(
+    var='pr',experiment_id='historical', years=np.arange(2070, 2100, 1))
 
+#%%
 def plot(dat, title, unit, label):
     plt.figure(figsize=(10,5))
     clim = np.nanmean(dat,axis=0)
