@@ -20,14 +20,22 @@ path_to_data = '/Users/lfl/utcdw_data/'
 
 #%%
 # load CESM data
-years_hist = np.arange(1980,2010, 1)
-years_585 = np.arange(2070, 2100, 1)
+years_hist = np.arange(1980,2011, 1)
+years_370 = np.arange(2070, 2101, 1)
 tas = gl.load_var(
     var='tas',experiment_id='historical', years=years_hist)
-pr = gl.load_var(
-    var='pr',experiment_id='historical', years=years_hist)
-hur = gl.load_var(
-    var='hur',experiment_id='historical', years=years_hist)
+#%%
+hur_370 = gl.load_var(
+    var='hur', experiment_id='ssp370', years=years_370, member_id='r4i1p1f1')
+# pr = gl.load_var(
+#     var='pr',experiment_id='historical', years=years_hist)
+
+# hur = gl.load_var(
+#     var='hur',experiment_id='historical', years=years_hist)
+#%%
+pr_masked = gl.mask_region(
+    pr,x_dim='lon',y_dim='lat',shapefile_name=f"{path_to_data}/Gezira.shp")
+
 #%%
 # def plot(dat, title, unit, label):
 #     plt.figure(figsize=(10,5))
@@ -70,6 +78,10 @@ precip=f_precip.tp * 1000 # do unit conversion
 precip.attrs['units'] = 'mm/day' # update the unit attributes
 precip = gl.mask_region(
     precip,x_dim='lon',y_dim='lat',shapefile_name=f"{path_to_data}/Gezira.shp")
+#%%
+pr_masked = gl.mask_region(
+    pr,x_dim='lon',y_dim='lat',shapefile_name=f"{path_to_data}/Gezira.shp")
+
 # rh= gl.mask_region(f_rh.relative_humidity,xdim='lon',ydim='lat')
 # tmax= gl.mask_region(f_tmax.t2m,xdim='lon',ydim='lat')
 # tmin= gl.mask_region(f_tmin.t2m,xdim='lon',ydim='lat')
