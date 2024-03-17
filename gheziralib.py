@@ -29,7 +29,7 @@ KC[WHEAT]=np.zeros(365)
 KC[GROUNDNUTS]=np.zeros(365)
 KC[COTTON]=np.zeros(365)
 # setup sorghum values 
-KC[SORGHUM][:monx[5]], KC[SORGHUM][monx[10]:monx[11]]=np.nan, np.nan
+KC[SORGHUM][:monx[5]], KC[SORGHUM][monx[10]:monx[11]]=0, 0
 KC[SORGHUM][monx[5]:monx[6]]=0.39
 KC[SORGHUM][monx[6]:monx[7]]=0.95
 KC[SORGHUM][monx[7]:monx[8]]=1.10
@@ -40,34 +40,57 @@ KC[SORGHUM][monx[9]:monx[10]]=1.96
 KC[WHEAT][:monx[0]]=1.15
 KC[WHEAT][monx[0]:monx[1]]=1.04
 KC[WHEAT][monx[1]:monx[2]]=0.43
-KC[WHEAT][monx[2]:monx[10]]=np.nan
+KC[WHEAT][monx[2]:monx[9]]=0
+KC[WHEAT][monx[9]:monx[10]]=0.23
+KC[WHEAT][monx[10]:monx[11]]=0.75
 
-KC[SORGHUM]=[np.nan,np.nan,np.nan,np.nan,np.nan,np.nan,0.39,0.95,1.10,0.81,1.96,np.nan]
-KC[WHEAT]=[1.15,1.04,0.43,np.nan,np.nan,np.nan,np.nan,np.nan,np.nan,np.nan,0.23,0.75]
-KC[GROUNDNUTS]=[np.nan,np.nan,np.nan,np.nan,0.42,0.96,1.44,1.08,1.00,np.nan,-np.nan,np.nan]
-KC[COTTON]=[np.nan,np.nan,0.35,0.63,0.91,1.20,1.20,1.00,0.80,0.60,np.nan,np.nan]
+# set up ground nuts values
+KC[GROUNDNUTS][:monx[3]], KC[GROUNDNUTS][monx[8]:monx[11]] = 0, 0
+KC[GROUNDNUTS][monx[3]:monx[4]]=0.42
+KC[GROUNDNUTS][monx[4]:monx[5]]=0.96
+KC[GROUNDNUTS][monx[5]:monx[6]]=1.44
+KC[GROUNDNUTS][monx[6]:monx[7]]=1.08
+KC[GROUNDNUTS][monx[7]:monx[8]]=1.00
+
+# set up cotton values
+KC[COTTON][:monx[1]], KC[COTTON][monx[9]:monx[11]] = 0, 0
+KC[COTTON][monx[1]:monx[2]]=0.35
+KC[COTTON][monx[2]:monx[3]]=0.63
+KC[COTTON][monx[3]:monx[4]]=0.91
+KC[COTTON][monx[4]:monx[5]]=1.20
+KC[COTTON][monx[5]:monx[6]]=1.20
+KC[COTTON][monx[6]:monx[7]]=1.00
+KC[COTTON][monx[7]:monx[8]]=0.80
+KC[COTTON][monx[8]:monx[9]]=0.60
+
+# KC[SORGHUM]=[np.nan,np.nan,np.nan,np.nan,np.nan,np.nan,0.39,0.95,1.10,0.81,1.96,np.nan]
+# KC[WHEAT]=[1.15,1.04,0.43,np.nan,np.nan,np.nan,np.nan,np.nan,np.nan,np.nan,0.23,0.75]
+# KC[GROUNDNUTS]=[np.nan,np.nan,np.nan,np.nan,0.42,0.96,1.44,1.08,1.00,np.nan,np.nan,np.nan]
+# KC[COTTON]=[np.nan,np.nan,0.35,0.63,0.91,1.20,1.20,1.00,0.80,0.60,np.nan,np.nan]
 
 def reference_crop_evapotranspiration(temp, rh):
     return 16 * temp / rh
     
-def crop_water_demand(crop, temp, rh, num_years):
+def crop_water_demand(crop, temp, rh):
     """
     Return the total water demand for a given crop,
     temperature (temp), and relative humidity (rh) during 
     a given time of the year (time as datetime)
     """
-    kc = KC[crop] * num_years
-    #mon_index = num2pydate(day, f'days since {year}-01-01 00:00:00', calendar='proleptic_gregorian').month - 1
+    kc = np.resize(KC[crop], np.shape(temp))
     return kc * reference_crop_evapotranspiration(temp, rh)
 
-def irrigation_water_demand(crop, temp, rh, time, er, eff):
+def irrigation_water_demand(crop, temp, rh, er, eff):
     """
     Returns the amount of water required from supplementary
     sources for irrigation of a given crop, at temperature temp,
     relative humidity rh, effective rainfall er, and irrigation 
-    efficiency eff
+    efficiency eff. Returns 0 if crop is not irrigated that day
     """
-    return (crop_water_demand(crop, temp, rh, time) - er) / eff
+    cwd = crop_water_demand(crop, temp, rh)
+    iwd_raw=(cwd-er)/eff
+    iwd = iwd_raw.where(cwd!=0, other=0)
+    return iwd
 
 def mask_region(arr,x_dim='lon',y_dim='lat',shapefile_name="C:/Users/prate/Desktop/Climate Impacts Hackathon/data/Gezira_shapefile/Gezira.shp"):
     df_shapefile = gpd.read_file(shapefile_name, crs="epsg:4326")
