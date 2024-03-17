@@ -14,6 +14,7 @@ import gheziralib as gl
 sys.path.append('/Users/lfl/google_drive/phd/utcdw_hackathon/UTCDW_Guidebook/' +
                 'downscaling_code')
 from DBCCA import DBCCA
+from BCCA import BCCA
 import xesmf as xe
 #%%
 yri_obs = 1980
@@ -55,14 +56,14 @@ hur_370_dbcca_file = f'{path_to_data}hur_370_dbcca.nc'
 
 #%%
 # load CESM data
-tas_his = xr.load_dataset(f'{data_transfer}/{tas_his_fname}').tas
-tas_370 = xr.load_dataset(f'{data_transfer}/{tas_370_fname}').tas
+tas_his = xr.load_dataset(f'{data_transfer}/{tas_his_fname}').tas - 273.15
+tas_370 = xr.load_dataset(f'{data_transfer}/{tas_370_fname}').tas - 273.15
 #
-pr_his = xr.load_dataset(f'{data_transfer}/{pr_his_fname}').pr
-pr_370 = xr.load_dataset(f'{data_transfer}/{pr_370_fname}').pr
+pr_his = xr.load_dataset(f'{data_transfer}/{pr_his_fname}').pr*60*60*24
+pr_370 = xr.load_dataset(f'{data_transfer}/{pr_370_fname}').pr*60*60*24
 #
-# hur_his = xr.load_dataset(f'{data_transfer}/{hur_his_fname}').hur
-# hur_370 = xr.load_dataset(f'{data_transfer}/{hur_370_fname}').hur
+# hur_his = xr.load_dataset(f'{data_transfer}/{hur_his_fname}').hur*100
+# hur_370 = xr.load_dataset(f'{data_transfer}/{hur_370_fname}').hur*100
 
 #%%
 # load obs
@@ -74,9 +75,14 @@ f_pr = (xr.open_dataset(f"{path_to_data}/{pr_obs_fname}")
     .convert_calendar('noleap').drop_vars(['time_level_0','time_level_1']))
 f_hur = (xr.open_dataset(f"{path_to_data}/{hur_obs_fname}")
     .convert_calendar('noleap'))
-tas_obs = (f_tmax.t2m + f_tmin.t2m) / 2
-pr_obs = f_pr.tp
-hur_obs = f_hur.relative_humidity
+# tas_obs = (f_tmax.t2m + f_tmin.t2m) / 2 + 273.15 # convert to K
+tas_obs = (f_tmax.t2m + f_tmin.t2m) / 2 # don't convert to K
+tas_obs.attrs['units'] = 'K'
+# pr_obs = f_pr.tp/(24*360) # convert to kg/m2/s
+pr_obs = f_pr.tp # don't convert to kg/m2/s
+pr_obs.attrs['units'] = 'mm/day'
+hur_obs = f_hur.relative_humidity/100
+hur_obs.attrs['units'] = 'percent'
 #%%
 # regrid obs to CESM grid
 regridder = xe.Regridder(tas_obs, tas_his, "bilinear")
@@ -86,17 +92,21 @@ hur_obs_coarse = regridder(hur_obs)
 
 #%%
 # do dbcca on tas and pr
-# # tas
-# DBCCA(
-#     tas_his, tas_370, tas_obs_coarse, tas_obs, n_analogues=30,
-#     window_size=45, window_unit='days', write_output=True, do_future=True,
-#     fout_hist_bcca=tas_his_bcca_file, fout_future_bcca=tas_370_bcca_file,
-#     fout_hist_dbcca=tas_his_dbcca_file, fout_future_dbcca=tas_370_dbcca_file
-#     )
 # tas
+# DBCCA(
+#     data_gcm_hist=tas_his, data_gcm_future=tas_370,
+#     data_obs_fine=tas_obs_coarse, varname='tas', n_analogues=30, units='K',
+#     bc_grouper='time.month', bc_kind='+', window_size=45, window_unit='days',
+#     write_output=True, do_future=True, fout_hist_bcca=tas_his_bcca_file,
+#     fout_future_bcca=tas_370_bcca_file, fout_hist_dbcca=tas_his_dbcca_file, 
+#     fout_future_dbcca=tas_370_dbcca_file
+#     )
+
 DBCCA(
-    pr_his, pr_370, pr_obs_coarse, pr_obs, n_analogues=30,
-    window_size=45, window_unit='days', write_output=True, do_future=True,
-    fout_hist_bcca=pr_his_bcca_file, fout_future_bcca=pr_370_bcca_file,
-    fout_hist_dbcca=pr_his_dbcca_file, fout_future_dbcca=pr_370_dbcca_file
+    data_gcm_hist=pr_his, data_gcm_future=pr_370, varname='pr',
+    data_obs_fine=pr_obs, n_analogues=30, units='mm/day',
+    bc_grouper='time.month', bc_kind='*', window_size=45, window_unit='days',
+    do_future=True, write_output=True, fout_hist_bcca=pr_his_bcca_file,
+    fout_future_bcca=pr_370_bcca_file, fout_hist_dbcca=pr_his_dbcca_file, 
+    fout_future_dbcca=pr_370_dbcca_file
     )
