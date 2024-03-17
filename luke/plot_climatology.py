@@ -21,16 +21,6 @@ path_to_data = '/Users/lfl/utcdw_data'
 shapefile_name = f"{path_to_data}/Gezira.shp"
 df_shapefile = gpd.read_file(shapefile_name, crs="epsg:4326")
 
-#### FUNCTIONS ####
-def mask_region(arr,ds='era5'):
-    if ds=='era5':
-        arr = arr.rio.set_spatial_dims(x_dim="longitude", y_dim="latitude")
-    elif ds=='tc':
-        arr = arr.rio.set_spatial_dims(x_dim="lon", y_dim="lat")
-    arr = arr.rio.write_crs("epsg:4326")
-    return arr.rio.clip(df_shapefile.geometry.values, df_shapefile.crs, drop = False, invert = False)
-
-
 def plot(dat, title, unit, label):
     plt.figure(figsize=(10,5))
     clim = np.nanmean(dat,axis=0)

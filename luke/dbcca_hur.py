@@ -58,9 +58,12 @@ hur_370_dbcca_file = f'{path_to_data}hur_370_dbcca.nc'
 # load CESM data
 tas_his = xr.load_dataset(f'{data_transfer}/{tas_his_fname}').tas - 273.15
 tas_370 = xr.load_dataset(f'{data_transfer}/{tas_370_fname}').tas - 273.15
-#
+# load pr
 pr_his = xr.load_dataset(f'{data_transfer}/{pr_his_fname}').pr*60*60*24
 pr_370 = xr.load_dataset(f'{data_transfer}/{pr_370_fname}').pr*60*60*24
+# load hur
+hur_his = xr.load_dataset(f'{data_transfer}/{hur_his_fname}').hur
+hur_370 = xr.load_dataset(f'{data_transfer}/{hur_370_fname}').hur
 #
 # hur_his = xr.load_dataset(f'{data_transfer}/{hur_his_fname}').hur*100
 # hur_370 = xr.load_dataset(f'{data_transfer}/{hur_370_fname}').hur*100
@@ -103,10 +106,10 @@ hur_obs_coarse = regridder(hur_obs)
 #     )
 
 DBCCA(
-    data_gcm_hist=tas_his, data_gcm_future=tas_370, varname='tas',
-    data_obs_fine=tas_obs, n_analogues=30, units='K',
+    data_gcm_hist=hur_his, data_gcm_future=hur_370, varname='hur',
+    data_obs_fine=hur_obs, n_analogues=30, units='percent',
     bc_grouper='time.month', bc_kind='+', window_size=45, window_unit='days',
-    do_future=True, write_output=True, fout_hist_bcca=tas_his_bcca_file,
-    fout_future_bcca=tas_370_bcca_file, fout_hist_dbcca=tas_his_dbcca_file, 
-    fout_future_dbcca=tas_370_dbcca_file
+    do_future=True, write_output=True, fout_hist_bcca=hur_his_bcca_file,
+    fout_future_bcca=hur_370_bcca_file, fout_hist_dbcca=hur_his_dbcca_file, 
+    fout_future_dbcca=hur_370_dbcca_file
     )

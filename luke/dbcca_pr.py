@@ -76,12 +76,12 @@ f_pr = (xr.open_dataset(f"{path_to_data}/{pr_obs_fname}")
 f_hur = (xr.open_dataset(f"{path_to_data}/{hur_obs_fname}")
     .convert_calendar('noleap'))
 # tas_obs = (f_tmax.t2m + f_tmin.t2m) / 2 + 273.15 # convert to K
-tas_obs = (f_tmax.t2m + f_tmin.t2m) / 2 # don't convert to K
+tas_obs = (f_tmax.t2m.rename('tas') + f_tmin.t2m.rename('tas')) / 2 # don't convert to K
 tas_obs.attrs['units'] = 'K'
 # pr_obs = f_pr.tp/(24*360) # convert to kg/m2/s
-pr_obs = f_pr.tp # don't convert to kg/m2/s
+pr_obs = f_pr.tp.rename('pr') # don't convert to kg/m2/s
 pr_obs.attrs['units'] = 'mm/day'
-hur_obs = f_hur.relative_humidity/100
+hur_obs = f_hur.relative_humidity.rename('hur')/100
 hur_obs.attrs['units'] = 'percent'
 #%%
 # regrid obs to CESM grid
@@ -105,7 +105,7 @@ hur_obs_coarse = regridder(hur_obs)
 DBCCA(
     data_gcm_hist=pr_his, data_gcm_future=pr_370, varname='pr',
     data_obs_fine=pr_obs, n_analogues=30, units='mm/day',
-    bc_grouper='time.month', bc_kind='*', window_size=45, window_unit='days',
+    bc_grouper='time.month', bc_kind='+', window_size=45, window_unit='days',
     do_future=True, write_output=True, fout_hist_bcca=pr_his_bcca_file,
     fout_future_bcca=pr_370_bcca_file, fout_hist_dbcca=pr_his_dbcca_file, 
     fout_future_dbcca=pr_370_dbcca_file
