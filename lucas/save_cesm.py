@@ -13,7 +13,7 @@ from gheziralib import *
 path='C:/Users/prate/Desktop/Climate Impacts Hackathon/data/cesm/'
 experiment='ssp370' #ssp585 or historical
 start, end = 2070, 2101
-arr=load_var('tas',experiment_id=experiment,years=np.arange(start,end),member_id='r4i1p1f1') #.sel(plev=1000,method='nearest')
+arr=load_var('pr',experiment_id=experiment,years=np.arange(start,end),member_id='r4i1p1f1') #.sel(plev=1000,method='nearest')
 print('loaded var')
-arr.to_netcdf(path+f'tas.cesm.daily.{experiment}.{start}-{end-1}.nc','w')
+arr.to_netcdf(path+f'pr.cesm.daily.{experiment}.{start}-{end-1}.nc','w')
 arr.close()

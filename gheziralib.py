@@ -22,7 +22,26 @@ WHEAT='wheat'
 GROUNDNUTS='groundnuts'
 COTTON='cotton'
 
+monx=[31,59,90,120,151,181,212,243,273,304,334,365]
 KC = {}
+KC[SORGHUM]=np.zeros(365)
+KC[WHEAT]=np.zeros(365)
+KC[GROUNDNUTS]=np.zeros(365)
+KC[COTTON]=np.zeros(365)
+# setup sorghum values 
+KC[SORGHUM][:monx[5]], KC[SORGHUM][monx[10]:monx[11]]=np.nan, np.nan
+KC[SORGHUM][monx[5]:monx[6]]=0.39
+KC[SORGHUM][monx[6]:monx[7]]=0.95
+KC[SORGHUM][monx[7]:monx[8]]=1.10
+KC[SORGHUM][monx[8]:monx[9]]=0.81
+KC[SORGHUM][monx[9]:monx[10]]=1.96
+
+# set up wheat values
+KC[WHEAT][:monx[0]]=1.15
+KC[WHEAT][monx[0]:monx[1]]=1.04
+KC[WHEAT][monx[1]:monx[2]]=0.43
+KC[WHEAT][monx[2]:monx[10]]=np.nan
+
 KC[SORGHUM]=[np.nan,np.nan,np.nan,np.nan,np.nan,np.nan,0.39,0.95,1.10,0.81,1.96,np.nan]
 KC[WHEAT]=[1.15,1.04,0.43,np.nan,np.nan,np.nan,np.nan,np.nan,np.nan,np.nan,0.23,0.75]
 KC[GROUNDNUTS]=[np.nan,np.nan,np.nan,np.nan,0.42,0.96,1.44,1.08,1.00,np.nan,-np.nan,np.nan]
@@ -31,15 +50,15 @@ KC[COTTON]=[np.nan,np.nan,0.35,0.63,0.91,1.20,1.20,1.00,0.80,0.60,np.nan,np.nan]
 def reference_crop_evapotranspiration(temp, rh):
     return 16 * temp / rh
     
-def crop_water_demand(crop, temp, rh, time):
+def crop_water_demand(crop, temp, rh, num_years):
     """
     Return the total water demand for a given crop,
     temperature (temp), and relative humidity (rh) during 
     a given time of the year (time as datetime)
     """
-    mon_index = time.dt.month - 1
+    kc = KC[crop] * num_years
     #mon_index = num2pydate(day, f'days since {year}-01-01 00:00:00', calendar='proleptic_gregorian').month - 1
-    return KC[crop][mon_index] * reference_crop_evapotranspiration(temp, rh)
+    return kc * reference_crop_evapotranspiration(temp, rh)
 
 def irrigation_water_demand(crop, temp, rh, time, er, eff):
     """
