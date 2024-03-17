@@ -13,6 +13,7 @@ from gheziralib import *
 #### PATHS ###
 path_to_obs = 'C:/Users/prate/Desktop/Climate Impacts Hackathon/data/era5_Geriza_Highres/'
 path_to_mod = 'C:/Users/prate/Desktop/Climate Impacts Hackathon/data/cesm/'
+path_to_savefig = 'C:/Users/prate/Desktop/Climate Impacts Hackathon/figures/'
 
 #### FUNCTIONS ####
 def plot(obs, mod, title, unit):
@@ -22,7 +23,7 @@ def plot(obs, mod, title, unit):
     max=obs.groupby('time.dayofyear').max(dim='time')
     min=obs.groupby('time.dayofyear').min(dim='time')
     time=np.arange(366)
-    clim.plot(label='TerraClim')
+    plt.plot(time, clim, label='TerraClim')
     plt.fill_between(time,min,max,alpha=0.5)
     
     print(f'plotting {title} model...')
@@ -30,14 +31,16 @@ def plot(obs, mod, title, unit):
     max=mod.groupby('time.dayofyear').max(dim='time')
     min=mod.groupby('time.dayofyear').min(dim='time')
     time=np.arange(365)
-    clim.plot(label='CESM Historical Data')
+    plt.plot(time,clim,label='CESM Historical Data')
     plt.fill_between(time,min,max,alpha=0.5)
 
     plt.grid()
     plt.xlim(0,365)
     plt.legend()
     plt.xlabel('Days since January 1st')
+    plt.ylabel(f'{title} ({unit})')
     plt.title(f'Mean Regional {title} Climatology {start}-{end-1} ({unit})')
+    plt.savefig(path_to_savefig+f'{title} Climatology.jpg',dpi=300)
 
 
 # initialize arrays for terraclim data
@@ -56,7 +59,6 @@ precip_obs.attrs['units'] = 'mm/day' # update the unit attributes
 precip_obs = mask_region(precip_obs)
 precip_obs=precip_obs.mean(dim=('lat','lon'))
 
-print(np.shape(precip_obs))
 rhumid_obs= mask_region(f_rhumid.relative_humidity) 
 rhumid_obs= rhumid_obs.mean(dim=('lat','lon'))
 
@@ -87,10 +89,13 @@ temp_mod=mask_region_cesm(f_temp.tas)
 temp_mod=temp_mod.mean(dim=('lat','lon'))
 print('meaned temp...')
 
+revap_obs=reference_crop_evapotranspiration(temp_obs,rhumid_obs)
+revap_mod=reference_crop_evapotranspiration(temp_mod,rhumid_mod)
+
 #%%
 print('plotting...')
 plot(precip_obs, precip_mod, 'Daily Precipitation', 'mm/day')
 plot(rhumid_obs, rhumid_mod, 'Relative Humidity', '%')
 plot(temp_obs, temp_mod, 'Surface Air Temperature', 'K')
-# plot(revap_obs, revap_mod,'Reference Evapotransporation', 'K')
+plot(revap_obs, revap_mod,'Reference Evapotransporation', 'mm/day')
 plt.show()
