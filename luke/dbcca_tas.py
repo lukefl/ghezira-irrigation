@@ -1,13 +1,16 @@
 #%%
 import os
 os.chdir('/Users/lfl/google_drive/phd/utcdw_hackathon/ghezira-irrigation')
+print(os.getcwd())
 import numpy as np
 import matplotlib.pyplot as plt
 import xarray as xr
 import importlib
 # importlib.reload(sys.modules['gheziralib'])
-import gheziralib as gl
 import sys
+sys.path.append('/Users/lfl/google_drive/phd/utcdw_hackathon/'+ 
+    'ghezira-irrigation/')
+import gheziralib as gl
 sys.path.append('/Users/lfl/google_drive/phd/utcdw_hackathon/UTCDW_Guidebook/' +
                 'downscaling_code')
 from DBCCA import DBCCA

@@ -1,13 +1,16 @@
 #%%
 import os
 os.chdir('/Users/lfl/google_drive/phd/utcdw_hackathon/ghezira-irrigation')
+print(os.getcwd())
 import numpy as np
 import matplotlib.pyplot as plt
 import xarray as xr
 import importlib
 # importlib.reload(sys.modules['gheziralib'])
-import gheziralib as gl
 import sys
+sys.path.append('/Users/lfl/google_drive/phd/utcdw_hackathon/'+ 
+    'ghezira-irrigation/')
+import gheziralib as gl
 sys.path.append('/Users/lfl/google_drive/phd/utcdw_hackathon/UTCDW_Guidebook/' +
                 'downscaling_code')
 from DBCCA import DBCCA
@@ -52,21 +55,25 @@ hur_370_dbcca_file = f'{path_to_data}hur_370_dbcca.nc'
 
 #%%
 # load CESM data
-tas_his = xr.load_dataset(f'{data_transfer}/{tas_his_fname}')
-tas_370 = xr.load_dataset(f'{data_transfer}/{tas_370_fname}')
+tas_his = xr.load_dataset(f'{data_transfer}/{tas_his_fname}').tas
+tas_370 = xr.load_dataset(f'{data_transfer}/{tas_370_fname}').tas
 #
-pr_his = xr.load_dataset(f'{data_transfer}/{pr_his_fname}')
-pr_370 = xr.load_dataset(f'{data_transfer}/{pr_370_fname}')
+pr_his = xr.load_dataset(f'{data_transfer}/{pr_his_fname}').pr
+pr_370 = xr.load_dataset(f'{data_transfer}/{pr_370_fname}').pr
 #
-# hur_his = xr.load_dataset(f'{data_transfer}/{hur_his_fname}')
-# hur_370 = xr.load_dataset(f'{data_transfer}/{hur_370_fname}')
+# hur_his = xr.load_dataset(f'{data_transfer}/{hur_his_fname}').hur
+# hur_370 = xr.load_dataset(f'{data_transfer}/{hur_370_fname}').hur
 
 #%%
 # load obs
-f_tmax = xr.open_dataset(f"{path_to_data}/{tmax_obs_fname}")
-f_tmin = xr.open_dataset(f"{path_to_data}/{tmin_obs_fname}")
-f_pr = xr.open_dataset(f"{path_to_data}/{pr_obs_fname}")
-f_hur = xr.open_dataset(f"{path_to_data}/{hur_obs_fname}")
+f_tmax = (xr.open_dataset(f"{path_to_data}/{tmax_obs_fname}")
+    .convert_calendar('noleap').drop_vars(['time_level_0','time_level_1']))
+f_tmin = (xr.open_dataset(f"{path_to_data}/{tmin_obs_fname}")
+    .convert_calendar('noleap').drop_vars(['time_level_0','time_level_1']))
+f_pr = (xr.open_dataset(f"{path_to_data}/{pr_obs_fname}")
+    .convert_calendar('noleap').drop_vars(['time_level_0','time_level_1']))
+f_hur = (xr.open_dataset(f"{path_to_data}/{hur_obs_fname}")
+    .convert_calendar('noleap'))
 tas_obs = (f_tmax.t2m + f_tmin.t2m) / 2
 pr_obs = f_pr.tp
 hur_obs = f_hur.relative_humidity
@@ -81,14 +88,15 @@ hur_obs_coarse = regridder(hur_obs)
 # do dbcca on tas and pr
 # # tas
 # DBCCA(
-#     tas_his,tas_370,tas_obs_coarse,tas_obs,n_analogues=30,
-#     window_size=45, window_unit='days', write_output=True, do_future=True
-#     fout_hist_bcca=tas_his_bcca_file, fout_future_bcca=tas_585_bcca_file,
-#     fout_hist_dbcca=tas_his_dbcca_file, fout_future_dbcca=tas_585_dbcca_file)
-# pr
+#     tas_his, tas_370, tas_obs_coarse, tas_obs, n_analogues=30,
+#     window_size=45, window_unit='days', write_output=True, do_future=True,
+#     fout_hist_bcca=tas_his_bcca_file, fout_future_bcca=tas_370_bcca_file,
+#     fout_hist_dbcca=tas_his_dbcca_file, fout_future_dbcca=tas_370_dbcca_file
+#     )
+# tas
 DBCCA(
-    pr_his,pr_370,pr_obs_coarse,pr_obs,n_analogues=30,
-    window_size=45, window_unit='days', write_output=True, do_future=True
+    pr_his, pr_370, pr_obs_coarse, pr_obs, n_analogues=30,
+    window_size=45, window_unit='days', write_output=True, do_future=True,
     fout_hist_bcca=pr_his_bcca_file, fout_future_bcca=pr_370_bcca_file,
     fout_hist_dbcca=pr_his_dbcca_file, fout_future_dbcca=pr_370_dbcca_file
     )
